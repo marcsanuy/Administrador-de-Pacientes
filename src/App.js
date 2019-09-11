@@ -1,11 +1,25 @@
 import React, { useState, Fragment } from 'react';
 
 
-function Formulario() {
+function Cita({cita}) {
+  return(
+    <div className="cita">
+      <p>Nombre: <span>{cita.nombre}</span></p>
+      <p>Apellidos: <span>{cita.apellidos}</span></p>
+      <p>Teléfono: <span>{cita.telefono}</span></p>
+      <p>Fecha: <span>{cita.fecha}</span></p>
+      <p>Hora: <span>{cita.hora}</span></p>
+      <p>Síntomas: <span>{cita.sintomas}</span></p>
+    </div>
+  )
+}
+
+function Formulario({crearCita}) {
 
   const [cita, actualizarCita] = useState({
     nombre:'',
     apellidos:'',
+    telefono:'',
     fecha:'',
     hora:'',
     sintomas:''
@@ -18,11 +32,22 @@ function Formulario() {
     })
   }
 
+  const enviarCita = e => {
+    e.preventDefault();
+
+    console.log(cita);
+
+    //Pasar la cita hacia el componente principal
+    crearCita(cita)
+
+    //Reiniciar el state (reiniciar el form)
+  }
+
   return (
     <Fragment>
       <h2>Crear Cita</h2>
 
-      <form>
+      <form onSubmit={enviarCita}>
                   <label>Nombre</label>
                   <input 
                     type="text" 
@@ -38,6 +63,15 @@ function Formulario() {
                     name="apellidos"
                     className="u-full-width"  
                     placeholder="Apellidos"
+                    onChange={actualizarState}
+                  />
+
+                  <label>Teléfono</label>
+                  <input 
+                    type="text" 
+                    name="telefono"
+                    className="u-full-width"  
+                    placeholder="Teléfono"
                     onChange={actualizarState}
                   />
 
@@ -77,16 +111,33 @@ function App() {
   // Funcions que actualiza el state this.setState();
   const [citas, guardarCita] = useState( [] );
 
+  //Agregar las nuevas citas al state
+  const crearCita = cita => {
+    //Hacer una copia del state y agregar el nuevo cliente
+    const nuevasCitas = [...citas, cita];
+
+    //Almacenamos en el state
+    guardarCita(nuevasCitas);
+  }
+
   return(
     <Fragment>
       <h1>Administrador de Pacientes</h1>
       <div className="container">
         <div className="row">
           <div className="one-half column">
-              <Formulario />
+              <Formulario 
+                crearCita={crearCita}
+              />
           </div>
           <div className="one-half column">
-
+            {citas.map((cita, index) =>(
+              <Cita 
+                key={index}
+                index={index}
+                cita={cita}
+              />
+            ))}
           </div>
         </div>
       </div>
