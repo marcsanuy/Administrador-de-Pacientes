@@ -1,7 +1,7 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 
 
-function Cita({cita}) {
+function Cita({cita, index, eliminarCita}) {
   return(
     <div className="cita">
       <p>Nombre: <span>{cita.nombre}</span></p>
@@ -10,21 +10,29 @@ function Cita({cita}) {
       <p>Fecha: <span>{cita.fecha}</span></p>
       <p>Hora: <span>{cita.hora}</span></p>
       <p>Síntomas: <span>{cita.sintomas}</span></p>
+      <button
+      onClick={() => eliminarCita(index)}
+      type="button" className="button eliminar u-full-width">Eliminar Cita</button>
     </div>
   )
 }
 
 function Formulario({crearCita}) {
 
-  const [cita, actualizarCita] = useState({
+  const stateInicial = {
     nombre:'',
     apellidos:'',
     telefono:'',
     fecha:'',
     hora:'',
     sintomas:''
-  });
+  }
 
+  // cita = state actual
+  // actualizarCita = función para cambiar el state
+  const [cita, actualizarCita] = useState(stateInicial);
+
+  // actualiza el state
   const actualizarState = e => {
     actualizarCita({
       ...cita,
@@ -32,6 +40,7 @@ function Formulario({crearCita}) {
     })
   }
 
+  // pasamos la cita al componete principal
   const enviarCita = e => {
     e.preventDefault();
 
@@ -41,6 +50,7 @@ function Formulario({crearCita}) {
     crearCita(cita)
 
     //Reiniciar el state (reiniciar el form)
+    actualizarCita(stateInicial)
   }
 
   return (
@@ -55,6 +65,7 @@ function Formulario({crearCita}) {
                     className="u-full-width" 
                     placeholder="Nombre" 
                     onChange={actualizarState}
+                    value={cita.nombre}
                   />
 
                   <label>Apellidos</label>
@@ -64,6 +75,7 @@ function Formulario({crearCita}) {
                     className="u-full-width"  
                     placeholder="Apellidos"
                     onChange={actualizarState}
+                    value={cita.apellidos}
                   />
 
                   <label>Teléfono</label>
@@ -73,6 +85,7 @@ function Formulario({crearCita}) {
                     className="u-full-width"  
                     placeholder="Teléfono"
                     onChange={actualizarState}
+                    value={cita.telefono}
                   />
 
                   <label>Fecha</label>
@@ -81,6 +94,7 @@ function Formulario({crearCita}) {
                     className="u-full-width"
                     name="fecha"
                     onChange={actualizarState}
+                    value={cita.fecha}
                   />               
 
                   <label>Hora</label>
@@ -89,6 +103,7 @@ function Formulario({crearCita}) {
                     className="u-full-width"
                     name="hora" 
                     onChange={actualizarState}
+                    value={cita.hora}
                   />
 
                   <label>Sintomas</label>
@@ -96,6 +111,7 @@ function Formulario({crearCita}) {
                     className="u-full-width"
                     name="sintomas"
                     onChange={actualizarState}
+                    value={cita.sintomas}
                   ></textarea>
 
                   <button type="submit" className="button-primary u-full-width">Agregar</button>
@@ -106,10 +122,17 @@ function Formulario({crearCita}) {
 
 
 function App() {
+  // cargar las citas de localstorage como state inical
+  let citasIniciales = JSON.parse(localStorage.getItem('citas'));
+
+  if(!citasIniciales) {
+    citasIniciales = [];
+  }
+
   //useState retorna 2 funciones
   // El state actual = this.state;
   // Funcions que actualiza el state this.setState();
-  const [citas, guardarCita] = useState( [] );
+  const [citas, guardarCita] = useState( citasIniciales );
 
   //Agregar las nuevas citas al state
   const crearCita = cita => {
@@ -119,6 +142,27 @@ function App() {
     //Almacenamos en el state
     guardarCita(nuevasCitas);
   }
+
+  // Eliminar las citas del state
+  const eliminarCita = index => {
+    const nuevasCitas = [...citas];
+    nuevasCitas.splice(index, 1);
+    guardarCita(nuevasCitas);
+  }
+
+  useEffect(
+    () => {
+        let citasIniciales = JSON.parse(localStorage.getItem('citas'));
+        if(citasIniciales) {
+          localStorage.setItem('citas', JSON.stringify(citas));
+        } else {
+          localStorage.setItem('citas', JSON.stringify([]));
+        }
+    }, [citas] )
+ 
+
+  // Cargar Condicionalmente un Título
+  const titulo =  Object.keys(citas).length === 0 ? 'No Hay Citas' : 'Administrar Citas Programadas';
 
   return(
     <Fragment>
@@ -131,11 +175,13 @@ function App() {
               />
           </div>
           <div className="one-half column">
+            <h2>{titulo}</h2>
             {citas.map((cita, index) =>(
               <Cita 
                 key={index}
                 index={index}
                 cita={cita}
+                eliminarCita={eliminarCita}
               />
             ))}
           </div>
